@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EcoData — Monitoramento ambiental</title>
+<style>
+  :root{
+    --bg:#F7F5EE; --card:#FFFFFF; --ink:#12211B; --primary:#14453A; --lime:#CDE8A0;
+    --muted:#6C7A72; --line:#E4DFD1; --soft:#F0EDE2; --dark:#0E2A22;
+    --font-head:"Fraunces",Georgia,"Times New Roman",serif;
+    --font-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+  h1,h2,h3{font-family:var(--font-head);font-weight:600;letter-spacing:-.015em;margin:0}
+  button{font-family:inherit}
+  .layout{display:flex;min-height:100vh}
+
+  /* Sidebar */
+  .sidebar{width:252px;flex:0 0 252px;background:var(--dark);color:#F6F3E9;padding:22px 18px;display:flex;flex-direction:column;justify-content:space-between;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 6px}
+  .brand .mark{width:36px;height:36px;border-radius:50%;background:var(--lime);color:var(--dark);display:grid;place-items:center;font-size:17px}
+  .brand strong{font-family:var(--font-head);font-size:18px;display:block;line-height:1.05}
+  .brand small{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(246,243,233,.45)}
+  .menu{margin-top:28px;display:flex;flex-direction:column;gap:3px}
+  .menu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;font-size:14px;color:rgba(246,243,233,.62);transition:.15s}
+  .menu button:hover{background:rgba(255,255,255,.06);color:#fff}
+  .menu button.active{background:rgba(255,255,255,.1);color:#F6F3E9;font-weight:600}
+  .menu .dot{width:6px;height:6px;border-radius:50%;background:rgba(246,243,233,.3)}
+  .menu button.active .dot{background:var(--lime)}
+  .side-foot{display:flex;flex-direction:column;gap:12px}
+  .side-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px}
+  .side-card p{margin:0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(205,232,160,.8)}
+  .side-card strong{font-family:var(--font-head);font-size:22px;display:block;margin-top:6px}
+  .side-card span{font-size:11px;color:rgba(246,243,233,.5)}
+  .side-note{font-size:10px;line-height:1.5;color:rgba(246,243,233,.35);padding:0 6px}
+
+  /* Main */
+  .main{flex:1;min-width:0;padding:30px 34px 60px}
+  .wrap{max-width:1240px;margin:0 auto}
+  .page-head{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end;margin-bottom:26px}
+  .eyebrow{margin:0;font-size:11px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:rgba(20,69,58,.6)}
+  .page-head h1{font-size:32px;margin-top:8px}
+  .sub{margin:8px 0 0;font-size:14px;color:var(--muted);max-width:560px;line-height:1.5}
+  .head-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;border:none;cursor:pointer;background:var(--primary);color:#F7F5EE;padding:11px 20px;border-radius:999px;font-size:13.5px;font-weight:600;transition:.15s}
+  .btn:hover{background:#1B5749}
+  .btn.outline{background:transparent;color:var(--primary);border:1px solid rgba(20,69,58,.25)}
+  .btn.outline:hover{background:rgba(20,69,58,.06)}
+  .btn.lime{background:var(--lime);color:var(--dark)}
+  .btn.lime:hover{background:#d7eeae}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .card-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .card-head h2{font-size:17px}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--muted)}
+  .legend i{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .kpi .label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .kpi .value{font-family:var(--font-head);font-size:31px;margin-top:18px;line-height:1;font-variant-numeric:tabular-nums}
+  .kpi .value small{font-family:var(--font-body);font-size:13px;color:var(--muted);font-weight:400;margin-left:4px}
+  .kpi .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.45}
+
+  .grid-2{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1.6fr;gap:14px}
+
+  .dark-card{background:var(--dark);color:#F6F3E9;border:none;border-radius:18px;padding:22px}
+  .dark-card .eyebrow{color:rgba(205,232,160,.8)}
+  .dark-card h2{font-size:22px;margin-top:10px}
+  .dark-card .meta{font-size:12.5px;color:rgba(246,243,233,.55);margin-top:4px}
+  .bar{height:8px;border-radius:999px;background:rgba(255,255,255,.12);margin-top:22px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--lime);border-radius:999px;transition:width .5s}
+  .bar-legend{display:flex;justify-content:space-between;font-size:11px;color:rgba(246,243,233,.5);margin-top:8px}
+  .dark-split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px;padding-top:18px;border-top:1px solid rgba(255,255,255,.12)}
+  .dark-split span{font-size:11px;color:rgba(246,243,233,.5);display:block}
+  .dark-split strong{font-family:var(--font-head);font-size:19px;font-weight:600}
+
+  .rank{list-style:none;margin:0;padding:0}
+  .rank li{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+  .rank li:first-child{border-top:none}
+  .rank .pos{width:16px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .rank .who{flex:1;min-width:0}
+  .rank .who p{margin:0;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rank .who span{font-size:11.5px;color:var(--muted)}
+  .rank .track{width:88px;height:6px;border-radius:999px;background:var(--soft);overflow:hidden}
+  .rank .track i{display:block;height:100%;background:rgba(20,69,58,.7)}
+  .rank .val{width:74px;text-align:right;font-size:12.5px;font-variant-numeric:tabular-nums}
+
+  .donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .donut{width:150px;height:150px;border-radius:50%;position:relative;flex:0 0 auto}
+  .donut::after{content:"";position:absolute;inset:26px;background:var(--card);border-radius:50%}
+  .donut-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center;z-index:1}
+  .donut-center span{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .donut-center strong{font-family:var(--font-head);font-size:18px}
+  .donut-legend{list-style:none;margin:0;padding:0;flex:1;min-width:130px}
+  .donut-legend li{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;color:var(--muted)}
+  .donut-legend i{width:8px;height:8px;border-radius:50%}
+  .donut-legend b{margin-left:auto;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+
+  .filters{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .filters input,.filters select{flex:1 1 160px}
+  input,select,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:13.5px;font-family:inherit}
+  input:focus,select:focus,textarea:focus{outline:2px solid rgba(20,69,58,.22);border-color:rgba(20,69,58,.4)}
+  textarea{resize:vertical;min-height:64px}
+  label.field{display:block;font-size:12px;font-weight:600;color:#3E4F47;margin-bottom:5px}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-grid .full{grid-column:1/-1}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chips label{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:6px 11px;border:1px solid var(--line);border-radius:999px;cursor:pointer;background:#fff}
+  .chips input{width:auto;margin:0}
+
+  .meta-line{font-size:11.5px;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;padding:0 4px}
+  .table-wrap{padding:0;overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:13px 14px;background:rgba(240,237,226,.6);white-space:nowrap;font-weight:600}
+  tbody td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
+  tbody tr:hover{background:rgba(240,237,226,.35)}
+  .num{font-variant-numeric:tabular-nums}
+  .right{text-align:right}
+  .mat{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+  .mat i{width:8px;height:8px;border-radius:50%}
+  .pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+  .pill.coletado{background:#E8EEF6;color:#3C5A7A}
+  .pill.triagem{background:#FBF0DA;color:#8A6420}
+  .pill.reciclado,.pill.ativo{background:#E4F0D6;color:#3E6B2A}
+  .pill.descartado,.pill.inativo{background:#F0EEEA;color:#6B6B63}
+  .pill.manutencao{background:#FBF0DA;color:#8A6420}
+  .icon-btn{border:none;background:transparent;cursor:pointer;padding:6px;border-radius:8px;color:var(--muted);font-size:14px;line-height:1}
+  .icon-btn:hover{background:var(--soft);color:var(--ink)}
+  .icon-btn.danger:hover{color:#B3402F;background:#FBEBE8}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .local{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+  .local .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .local .tipo{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .local h3{font-size:17px;margin-top:6px}
+  .local .bairro{font-size:12px;color:var(--muted);margin-top:4px}
+  .local .tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:14px}
+  .local .tags span{background:var(--soft);border-radius:999px;padding:3px 9px;font-size:10.5px;color:var(--muted)}
+  .local .foot{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:auto}
+  .local .foot small{display:block;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .local .foot strong{font-size:12.5px;font-weight:600}
+  .local .tags{margin-bottom:16px}
+
+  .empty{border:1px dashed var(--line);border-radius:18px;padding:44px 20px;text-align:center;color:var(--muted);font-size:13.5px;background:rgba(255,255,255,.6)}
+  .empty strong{display:block;font-family:var(--font-head);font-size:17px;color:var(--ink);margin-bottom:6px}
+
+  .modal[hidden]{display:none}
+  .modal{position:fixed;inset:0;background:rgba(14,42,34,.45);backdrop-filter:blur(3px);display:grid;place-items:center;padding:18px;z-index:50}
+  .modal-card{background:#fff;border-radius:20px;width:min(580px,100%);max-height:90vh;overflow:auto;padding:22px;box-shadow:0 30px 80px -30px rgba(14,42,34,.5)}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+  .modal-head h3{font-size:19px}
+  .modal-head p{margin:5px 0 0;font-size:12.5px;color:var(--muted)}
+  .modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);background:var(--dark);color:#F6F3E9;padding:11px 18px;border-radius:999px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:60}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  .foot-note{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);margin-top:22px}
+
+  @media (max-width:1000px){
+    .grid-2,.grid-3{grid-template-columns:1fr}
+  }
+  @media (max-width:860px){
+    .layout{flex-direction:column}
+    .sidebar{width:100%;flex:none;height:auto;position:static;padding:14px}
+    .sidebar .side-foot{display:none}
+    .menu{flex-direction:row;overflow-x:auto;margin-top:12px;gap:6px}
+    .menu button{white-space:nowrap;padding:8px 12px;font-size:12.5px}
+    .main{padding:20px 16px 48px}
+    .page-head h1{font-size:26px}
+    .form-grid{grid-template-columns:1fr}
+  }
+</style>
+<script>if (window.self !== window.top) window.parent.postMessage({ type: 'SANDBOX_DOCUMENT_START' }, '*');</script><script>
+    (function() {
+        var buffer = window.__base44_preview_native_failures;
+        if (!buffer || buffer.version !== 1 || !Array.isArray(buffer.entries)) {
+            buffer = { version: 1, entries: [], listenersInstalled: false };
+            window.__base44_preview_native_failures = buffer;
+        }
+        if (buffer.listenersInstalled) return;
+        function value(object, key) {
+            return object && typeof object[key] === 'string' ? object[key] : '';
+        }
+        function append(message) {
+            if (!message) return;
+            var normalizedMessage = String(message).slice(0, 5000);
+            for (var index = buffer.entries.length - 1; index >= 0; index--) {
+                var existing = buffer.entries[index];
+                if (existing && existing.level === 'error' && existing.message === normalizedMessage) {
+                    buffer.entries.splice(index, 1);
+                }
+            }
+            buffer.entries.push({
+                level: 'error',
+                message: normalizedMessage,
+                timestamp: Date.now()
+            });
+            if (buffer.entries.length > 100) {
+                buffer.entries.splice(0, buffer.entries.length - 100);
+            }
+        }
+        buffer.append = append;
+        function handleError(event) {
+            var target = event && event.target;
+            var tagName = value(target, 'tagName').toLowerCase() || 'window';
+            var isModule = tagName === 'script' && value(target, 'type').toLowerCase() === 'module';
+            var resourceType = isModule ? 'module' : tagName;
+            var url = value(target, 'src') || value(target, 'href') || value(event, 'filename');
+            var detail = value(event, 'message') || value(event && event.error, 'message');
+            var prefix = tagName === 'window' ? 'Native browser error' : 'Failed to load ' + resourceType;
+            append(prefix + (url ? ' ' + url : '') + (detail ? ': ' + detail : ''));
+        }
+        function rejectionReason(reason) {
+            if (typeof reason === 'string') return reason;
+            var message = value(reason, 'message');
+            if (message) return message;
+            try { return JSON.stringify(reason) || String(reason); }
+            catch (e) { return String(reason); }
+        }
+        function handleRejection(event) {
+            append('Unhandled promise rejection: ' + rejectionReason(event && event.reason));
+        }
+        function handleCspViolation(event) {
+            var blockedUri = value(event, 'blockedURI') || 'resource';
+            var directive = value(event, 'violatedDirective');
+            append('Content Security Policy blocked ' + blockedUri + (directive ? ' (' + directive + ')' : ''));
+        }
+        function overlayText(root, selector) {
+            var element = root && root.querySelector(selector);
+            return value(element, 'textContent').trim();
+        }
+        function captureViteOverlay(overlay) {
+            var root = overlay && overlay.shadowRoot;
+            var message = overlayText(root, '.message-body');
+            if (!message) return;
+            var plugin = overlayText(root, '.plugin');
+            var details = ['Vite build error: ' + (plugin ? plugin + ' ' : '') + message];
+            var file = overlayText(root, '.file');
+            var frame = overlayText(root, '.frame');
+            var stack = overlayText(root, '.stack');
+            if (file) details.push('File: ' + file);
+            if (frame) details.push(frame);
+            if (stack) details.push(stack);
+            append(details.join(String.fromCharCode(10)));
+        }
+        function captureViteOverlays(node) {
+            if (!node || node.nodeType !== 1) return;
+            if (node.matches && node.matches('vite-error-overlay')) captureViteOverlay(node);
+            if (!node.querySelectorAll) return;
+            var overlays = node.querySelectorAll('vite-error-overlay');
+            for (var index = 0; index < overlays.length; index++) captureViteOverlay(overlays[index]);
+        }
+        window.addEventListener('error', handleError, true);
+        window.addEventListener('unhandledrejection', handleRejection);
+        window.addEventListener('securitypolicyviolation', handleCspViolation);
+        if (typeof MutationObserver !== 'undefined' && document.documentElement) {
+            captureViteOverlays(document.documentElement);
+            new MutationObserver(function(records) {
+                for (var recordIndex = 0; recordIndex < records.length; recordIndex++) {
+                    var nodes = records[recordIndex].addedNodes;
+                    for (var nodeIndex = 0; nodeIndex < nodes.length; nodeIndex++) {
+                        captureViteOverlays(nodes[nodeIndex]);
+                    }
+                }
+            }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+        buffer.listenersInstalled = true;
+    })();
+    </script><script data-preview-data-env-pin="true">
+    (function() {
+        var KEY = 'base44_data_env';
+        var APP_API_PATH = "/api/apps/6b056fbdd2142d6939e0633c/";
+        var STORAGE_KEY = KEY + ':' + APP_API_PATH;
+        var API_ORIGINS = ["https://app.base44.com", "https://base44.app"].map(function(u) { return new URL(u).origin; });
+        var REQUEST_INIT_KEYS = [
+            'method', 'headers', 'credentials', 'mode', 'cache', 'redirect',
+            'referrer', 'referrerPolicy', 'integrity', 'keepalive', 'signal', 'priority',
+        ];
+        var env = new URLSearchParams(window.location.search).get(KEY);
+        try {
+            if (env === 'dev' || env === 'prod') sessionStorage.setItem(STORAGE_KEY, env);
+            else env = sessionStorage.getItem(STORAGE_KEY);
+        } catch (e) {}
+        if (env !== 'dev' && env !== 'prod') return;
+        function pin(url) {
+            try {
+                var u = new URL(url, window.location.href);
+                var sameOrigin = u.origin === window.location.origin;
+                if (!sameOrigin && API_ORIGINS.indexOf(u.origin) === -1) return url;
+                // The app's own server routes and TanStack server functions build
+                // their SDK client from this request, so they need the selection too.
+                var appServerPath = sameOrigin && (
+                    u.pathname.startsWith('/api/') || u.pathname.startsWith('/_serverFn/')
+                );
+                if (!appServerPath && !u.pathname.startsWith(APP_API_PATH)) return url;
+                // Privileged function/agent routes trust this app's Preview host,
+                // not a dev parameter sent to the generic SDK API origin.
+                if (u.origin !== window.location.origin && (
+                    u.pathname.startsWith(APP_API_PATH + 'functions/') ||
+                    u.pathname.startsWith(APP_API_PATH + 'agents/')
+                )) {
+                    u = new URL(u.pathname + u.search + u.hash, window.location.origin);
+                }
+                u.searchParams.set(KEY, env);
+                return u.toString();
+            } catch (e) { return url; }
+        }
+        var origFetch = window.fetch;
+        window.fetch = function(input, init) {
+            if (typeof input === 'string' || input instanceof URL) {
+                return origFetch.call(this, pin(String(input)), init);
+            }
+            if (!input || !input.url) return origFetch.call(this, input, init);
+            var pinned = pin(input.url);
+            if (pinned === input.url) return origFetch.call(this, input, init);
+            try {
+                input = new Request(input, init);
+                if (!input.keepalive || !input.body) {
+                    return origFetch.call(this, new Request(pinned, input));
+                }
+                // RequestInit exposes an existing body as a stream, which Fetch
+                // forbids with keepalive. Buffer only that case, after init overrides.
+                var self = this;
+                return input.blob().then(function(body) {
+                    var rebuilt = { body: body };
+                    REQUEST_INIT_KEYS.forEach(function(key) {
+                        if (input[key] !== undefined) rebuilt[key] = input[key];
+                    });
+                    return origFetch.call(self, new Request(pinned, rebuilt));
+                });
+            } catch (error) { return Promise.reject(error); }
+        };
+        var origOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+            arguments[1] = pin(String(url));
+            return origOpen.apply(this, arguments);
+        };
+    })();
+    </script><script defer data-preview-inject="true" data-parent-origins="https://app.base44.com https://superagent.base44.com" data-app-id="6b056fbdd2142d6939e0633c" data-preview-type="sandbox" data-rum-app-id="db50c921-10c3-4f12-bccb-950fa174b708" data-rum-client-token="pubfe8a4f2972b412b4556fd67e77f82cb4" data-dd-site="datadoghq.com" src="https://app.base44.com/builder-bridge.js?t=1795518922"></script><script>
+    (function() {
+        var IGNORE = { SCRIPT: 1, STYLE: 1, LINK: 1, META: 1, NOSCRIPT: 1, TEMPLATE: 1 };
+        const fire = () => window.parent.postMessage({ type: 'IFRAME_CONTENT_READY' }, '*');
+        function check() {
+            var body = document.body;
+            if (!body) return false;
+            for (var idx = 0; idx < body.children.length; idx++) {
+                if (!IGNORE[body.children[idx].tagName]) return true;
+            }
+            return false;
+        }
+        function start() {
+            if (check()) { fire(); return; }
+            var observer = new MutationObserver(function() {
+                if (check()) { fire(); observer.disconnect(); }
+            });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+        }
+        if (document.body) { start(); }
+        else { document.addEventListener('DOMContentLoaded', start, { once: true }); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var APP_ID = "6b056fbdd2142d6939e0633c";
+        var PREVIEW_TYPE = "sandbox";
+        var on404 = false;
+        var booted = false;
+        function detect() { return !!document.querySelector('[data-source-location^="PageNotFound:"]'); }
+        function payload() { return { app_id: APP_ID, preview_type: PREVIEW_TYPE, url_path: window.location.pathname }; }
+        function tick() {
+            var now = detect();
+            if (now && !on404) {
+                on404 = true;
+                window.parent.postMessage({ type: 'PREVIEW_PAGE_NOT_FOUND', payload: payload() }, '*');
+            } else if (!now && (on404 || !booted)) {
+                // On first tick of a fresh document, emit a cleared signal even when
+                // not currently on a 404 — the parent may have latched is404=true from
+                // a previous document at the same URL (e.g. after an iframe reload).
+                on404 = false;
+                window.parent.postMessage({ type: 'PREVIEW_PAGE_NOT_FOUND_CLEARED', payload: payload() }, '*');
+            }
+            booted = true;
+        }
+        function start() {
+            tick();
+            new MutationObserver(tick).observe(document.body, { childList: true, subtree: true });
+        }
+        if (document.body) { start(); }
+        else { document.addEventListener('DOMContentLoaded', start, { once: true }); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var HEADINGS = ["Your app will appear here", "Your app starts here"];
+        var shown = false;
+        var booted = false;
+        var documentId = Math.random().toString(36).slice(2);
+        function detect() {
+            var hs = document.getElementsByTagName('h1');
+            for (var i = 0; i < hs.length; i++) {
+                if (HEADINGS.indexOf((hs[i].textContent || '').trim()) !== -1) return true;
+            }
+            return false;
+        }
+        function payload() { return { app_id: "6b056fbdd2142d6939e0633c", preview_type: "sandbox", url_path: window.location.pathname, document_id: documentId }; }
+        function tick() {
+            var now = detect();
+            if (now && !shown) {
+                shown = true;
+                window.parent.postMessage({ type: 'PREVIEW_TEMPLATE_HOME_SHOWN', payload: payload() }, '*');
+            } else if (!now && (shown || !booted)) {
+                shown = false;
+                window.parent.postMessage({ type: 'PREVIEW_TEMPLATE_HOME_CLEARED', payload: payload() }, '*');
+            }
+            booted = true;
+        }
+        function start() {
+            tick();
+            new MutationObserver(tick).observe(document.body, { childList: true, subtree: true, characterData: true });
+        }
+        if (document.body) { start(); }
+        else { document.addEventListener('DOMContentLoaded', start, { once: true }); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        function fire() { window.parent.postMessage({ type: 'REACT_ROOT_HAS_CHILDREN' }, '*'); }
+        function findRoot() {
+            return document.getElementById('root')
+                || document.getElementById('app')
+                || document.querySelector('[data-react-root]');
+        }
+        // One-shot: wait for DOMContentLoaded (static HTML parsed by then, so the
+        // Base44 convention <div id="root"> is either present or not coming),
+        // observe the root's childList until the first element child appears,
+        // then fire and disconnect. No tree-wide subtree observer.
+        function start() {
+            var root = findRoot();
+            if (!root) return;
+            if (root.childElementCount > 0) { fire(); return; }
+            var obs = new MutationObserver(function() {
+                if (root.childElementCount > 0) { fire(); obs.disconnect(); }
+            });
+            obs.observe(root, { childList: true });
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start, { once: true });
+        } else { start(); }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        function postUnsupported(reason) {
+            window.parent.postMessage({
+                type: 'IFRAME_FIRST_CONTENTFUL_PAINT_UNSUPPORTED',
+                payload: { reason: reason, userAgent: navigator.userAgent }
+            }, '*');
+        }
+        if (typeof PerformanceObserver === 'undefined') {
+            postUnsupported('no_performance_observer');
+            return;
+        }
+        try {
+            var obs = new PerformanceObserver(function(list) {
+                var entries = list.getEntries();
+                for (var i = 0; i < entries.length; i++) {
+                    if (entries[i].name === 'first-contentful-paint') {
+                        obs.disconnect();
+                        window.parent.postMessage({ type: 'IFRAME_FIRST_CONTENTFUL_PAINT' }, '*');
+                        return;
+                    }
+                }
+            });
+            obs.observe({ type: 'paint', buffered: true });
+        } catch (e) {
+            postUnsupported('observe_threw:' + (e && e.name ? e.name : 'Error'));
+        }
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var APP_ID = "6b056fbdd2142d6939e0633c";
+        var PREVIEW_TYPE = "sandbox";
+        var DEPS_PATH = '/node_modules/.vite/deps/';
+        var fired = false;
+        function isViteDep(url) {
+            return typeof url === 'string' && url.indexOf(DEPS_PATH) !== -1;
+        }
+        var confirmed = {};
+        function looksFailed(entry) {
+            // HTTP failure status (Chrome 109+).
+            if (entry.responseStatus && entry.responseStatus >= 400) return true;
+            // Aborted / blocked / network-error: request ran, nothing decoded.
+            // decodedBodySize === 0 distinguishes from cache hits (Safari has no
+            // deliveryType, so we can't rely on it to exclude cached responses).
+            return entry.transferSize === 0
+                && entry.decodedBodySize === 0
+                && entry.duration > 0
+                && entry.responseEnd > 0;
+        }
+        // WebKit has no responseStatus and zeroes every size on a cache hit, so the
+        // size heuristic alone flags every cached dep. Re-ask the server instead; a
+        // rejected HEAD proves nothing, WebKit aborts it when the frame navigates away.
+        function confirmThenReport(entry) {
+            if (confirmed[entry.name]) return;
+            confirmed[entry.name] = true;
+            fetch(entry.name, { method: 'HEAD', cache: 'no-store' }).then(function(res) {
+                var type = res.headers.get('content-type') || '';
+                if (res.status >= 400 || type.indexOf('text/html') !== -1) report(entry, res.status);
+            }, function() {});
+        }
+        function report(entry, confirmedStatus) {
+            if (fired) return;
+            fired = true;
+            var nativeBuffer = window.__base44_preview_native_failures;
+            if (nativeBuffer && typeof nativeBuffer.append === 'function') {
+                nativeBuffer.append('Failed to load module ' + entry.name);
+            }
+            window.parent.postMessage({
+                type: 'SANDBOX_VITE_DEPS_404',
+                payload: {
+                    app_id: APP_ID,
+                    preview_type: PREVIEW_TYPE,
+                    url: entry.name,
+                    initiator_type: entry.initiatorType,
+                    response_status: entry.responseStatus || confirmedStatus
+                }
+            }, '*');
+        }
+        new PerformanceObserver(function(list) {
+            if (fired) return;
+            var entries = list.getEntries();
+            for (var i = 0; i < entries.length; i++) {
+                if (isViteDep(entries[i].name) && looksFailed(entries[i])) {
+                    if ('responseStatus' in entries[i]) {
+                        report(entries[i]);
+                        return;
+                    }
+                    confirmThenReport(entries[i]);
+                }
+            }
+        }).observe({ type: 'resource', buffered: true });
+    })();
+    </script><script>
+    (function() {
+        if (typeof PerformanceObserver === 'undefined') return;
+        var reported = {};
+        // Only the app's own module trees may put an error over the preview. A page
+        // can load an optional classic script (analytics, a widget) that fails while
+        // the app renders perfectly well; that must not read as broken app code.
+        // Recording is deliberately wider than reporting — the console buffer keeps
+        // every failed module for diagnostics.
+        function isAppModule(path) {
+            return path.indexOf('/src/') === 0 || path.indexOf('/base44/') === 0;
+        }
+        function modulePath(url) {
+            try {
+                var path = new URL(url, window.location.href).pathname;
+                // The bridge probes this standard SDK path opportunistically;
+                // legacy/custom apps are allowed not to provide it.
+                if (path === '/src/api/base44Client.js') return '';
+                if (path.indexOf('/node_modules/.vite/deps/') !== -1) return '';
+                return /[.](?:[cm]?[jt]sx?)$/i.test(path) ? path : '';
+            } catch (e) {
+                return '';
+            }
+        }
+        new PerformanceObserver(function(list) {
+            var entries = list.getEntries();
+            for (var index = 0; index < entries.length; index++) {
+                var entry = entries[index];
+                if (entry.initiatorType !== 'script') continue;
+                var status = entry.responseStatus;
+                if (!status) continue;
+                var path = modulePath(entry.name);
+                if (!path) continue;
+                if (status < 400) {
+                    // Recovered (an HMR fix re-requests it). Forget it, or breaking the
+                    // same path again later this document would be silently suppressed.
+                    delete reported[path];
+                    continue;
+                }
+                var message = status === 404
+                    ? 'Module not found: ' + path
+                    : 'Module failed to load (' + status + '): ' + path;
+                var buffer = window.__base44_preview_native_failures;
+                if (buffer && typeof buffer.append === 'function') buffer.append(message);
+                if (!isAppModule(path) || reported[path] || window.self === window.top) continue;
+                reported[path] = true;
+                window.parent.postMessage({
+                    type: 'SANDBOX_MODULE_LOAD_FAILED',
+                    payload: { path: path, status: status, message: message }
+                }, '*');
+            }
+        }).observe({ type: 'resource', buffered: true });
+    })();
+    </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        if (typeof performance === 'undefined' || typeof performance.getEntriesByType !== 'function') return;
+        var DEPS_PATH = '/node_modules/.vite/deps/';
+        var QUIESCENCE_MS = 1500;
+        var POLL_MS = 500;
+        var fired = false;
+        var intervalId = setInterval(function() {
+            if (fired) return;
+            var entries = performance.getEntriesByType('resource');
+            var lastDepEnd = 0;
+            for (var i = 0; i < entries.length; i++) {
+                if (entries[i].name.indexOf(DEPS_PATH) === -1) continue;
+                if (entries[i].responseEnd > lastDepEnd) lastDepEnd = entries[i].responseEnd;
+            }
+            if (lastDepEnd === 0) return;
+            if (performance.now() - lastDepEnd >= QUIESCENCE_MS) {
+                fired = true;
+                clearInterval(intervalId);
+                window.parent.postMessage({ type: 'IFRAME_VITE_DEPS_SETTLED' }, '*');
+            }
+        }, POLL_MS);
+    })();
+    </script><script>
+        window.__base44_sdk_attach = import("/src/api/base44Client.js").then(({ base44 }) => {
+            if (base44) {
+                Object.defineProperty(window, "base44_sdk", {
+                    value: base44,
+                    writable: false,
+                    configurable: true
+                });
+            }
+        }).catch((e) => {
+            // Some legacy/custom apps may not have the standard client module.
+            // Leave window.base44_sdk undefined; PreviewLens can fall back to UI/network checks.
+            window.parent.postMessage({ type: "PREVIEW_LENS_SDK_ATTACH_FAILED", error: String(e) }, "*");
+        });
+        </script><script type="module">
+        try {
+            const { createHotContext } = await import("/@vite/client");
+            const hot = createHotContext("/__builder-bridge-hmr");
+            const previewFEVersion = Number(new URLSearchParams(window.location.search).get("previewFE_version")) || 0;
+        
+            let wsOpenedAt = 0;
+            hot.on("vite:ws:connect", () => {
+                wsOpenedAt = Date.now();
+                window.parent.postMessage({ type: "SANDBOX_WS_CONNECT" }, "*");
+            });
+            hot.on("vite:ws:disconnect", () => {
+                let sw = null;
+                try { sw = navigator.serviceWorker; } catch (e) {}  // SecurityError where storage is denied
+                const staleClient = Date.now() - wsOpenedAt < 1000 && !!(sw && sw.controller);
+                window.parent.postMessage({ type: "SANDBOX_WS_DISCONNECT", payload: { stale_client: staleClient } }, "*");
+                if (!staleClient) return;
+                // Vite awaits this before it reloads, so the reload fetches fresh modules.
+                return Promise.race([
+                    Promise.all([
+                        sw.getRegistrations().then((regs) => Promise.all(regs.map((reg) => reg.unregister()))),
+                        caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key)))),
+                    ]),
+                    new Promise((resolve) => setTimeout(resolve, 2000)),
+                ]).catch(() => {});
+            });
+    
+            hot.on("vite:error", (payload) => {
+                const err = payload && payload.err && typeof payload.err === "object" ? payload.err : {};
+                const message = typeof err.message === "string" ? err.message : "Unknown build error";
+                const plugin = typeof err.plugin === "string" ? `[plugin:${err.plugin}] ` : "";
+                const details = [`Vite build error: ${plugin}${message}`];
+                const loc = err.loc && typeof err.loc === "object" ? err.loc : null;
+                let file = loc && typeof loc.file === "string"
+                    ? loc.file
+                    : (typeof err.id === "string" ? err.id : "");
+                if (file) {
+                    file = file.split("?")[0];
+                    if (loc && Number.isFinite(loc.line) && Number.isFinite(loc.column)) {
+                        file += `:${loc.line}:${loc.column}`;
+                    }
+                    details.push(`File: ${file}`);
+                }
+                if (typeof err.frame === "string" && err.frame.trim()) details.push(err.frame.trim());
+                if (typeof err.stack === "string" && err.stack.trim()) details.push(err.stack.trim());
+
+                const nativeBuffer = window.__base44_preview_native_failures;
+                if (!nativeBuffer || typeof nativeBuffer.append !== "function") return;
+                nativeBuffer.append(details.join(String.fromCharCode(10)));
+            });
+    
+            let hotUpdateStartedAt = 0;
+            hot.on("vite:beforeUpdate", () => { hotUpdateStartedAt = performance.now(); });
+            hot.on("vite:afterUpdate", () => {
+                const startedAt = hotUpdateStartedAt;
+                requestAnimationFrame(() => {
+                    window.parent.postMessage({ type: "SANDBOX_HOT_UPDATE_PAINTED", duration_ms: performance.now() - startedAt }, "*");
+                });
+            });
+    
+            // The pending promise holds Vite's pageReload (it awaits listeners) so the parent swaps a fresh iframe; an editor that doesn't announce previewFE_version falls back to today's in-place reload.
+            hot.on("vite:beforeFullReload", () => {
+                window.parent.postMessage({ type: "sandbox:beforeFullReload" }, "*");
+                if (previewFEVersion > 0) return new Promise(() => {});
+            });
+        } catch (e) {
+            window.parent.postMessage({ type: "SANDBOX_WS_ATTACH_FAILED", error: String(e) }, "*");
+        }
+        </script><script>
+        (function() {
+            var INTERVAL_MS = 30 * 60 * 1000;
+            var PROBE_MS = 15 * 1000;
+            var last = Date.now();
+            function renew() {
+                last = Date.now();
+                fetch("/base44-preview-session", {
+                    credentials: 'same-origin', cache: 'no-store', headers: {"x-base44-preview-keepalive": "1"}
+                }).then(function(r) {
+                    if ((r.status === 401 || r.status === 403) && window.self !== window.top) window.parent.postMessage({ type: "preview:requestRefresh" }, '*');
+                }).catch(function() {});
+            }
+            setInterval(renew, INTERVAL_MS);
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && Date.now() - last >= INTERVAL_MS) renew();
+            });
+            // A refused module is an opaque load error (WebKit has no responseStatus), and a grant keyed on IP+UA
+            // ends mid-page when the client's IP changes, so ask whether the session is still there.
+            var pending = 0;
+            function probe() {
+                var wait = last + PROBE_MS - Date.now();
+                if (wait <= 0) renew();
+                else if (!pending) pending = setTimeout(function() { pending = 0; renew(); }, wait);
+            }
+            window.addEventListener('error', probe, true);
+            window.addEventListener('unhandledrejection', probe);
+        })();
+        </script><script>
+    (function() {
+        if (window.self === window.top) return;
+        var lastUrl = window.location.href;
+        function notify() {
+            var url = window.location.href;
+            if (url === lastUrl) return;
+            lastUrl = url;
+            window.parent.postMessage({ type: 'APP_CHANGED_URL', url: url }, '*');
+        }
+        var origPush = history.pushState.bind(history);
+        history.pushState = function() { origPush.apply(history, arguments); notify(); };
+        var origReplace = history.replaceState.bind(history);
+        history.replaceState = function() { origReplace.apply(history, arguments); notify(); };
+        window.addEventListener('popstate', notify);
+        window.parent.postMessage({ type: 'APP_CHANGED_URL', url: window.location.href }, '*');
+    })();
+    </script></head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <span class="mark">&#127807;</span>
+        <span><strong>EcoData</strong><small>Ambiental</small></span>
+      </div>
+      <nav class="menu" id="menu">
+        <button data-view="painel" class="active"><span class="dot"></span>Painel</button>
+        <button data-view="residuos"><span class="dot"></span>Resíduos</button>
+        <button data-view="locais"><span class="dot"></span>Locais de coleta</button>
+        <button data-view="reciclados"><span class="dot"></span>Materiais reciclados</button>
+      </nav>
+    </div>
+    <div class="side-foot">
+      <div class="side-card">
+        <p>Meta mensal</p>
+        <strong>1.200 kg</strong>
+        <span>de material reciclado</span>
+      </div>
+      <p class="side-note">Arquivo único · os dados ficam salvos neste navegador (localStorage).</p>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="wrap">
+      <!-- PAINEL -->
+      <section id="view-painel">
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Monitoramento ambiental</p>
+            <h1>Painel EcoData</h1>
+            <p class="sub">Visão consolidada da coleta, triagem e destinação dos resíduos monitorados.</p>
+          </div>
+          <div class="head-actions">
+            <button class="btn" data-action="new-residuo">+ Novo registro</button>
+          </div>
+        </header>
+        <div class="kpis" id="kpis"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h2>Evolução dos últimos 6 meses</h2>
+              <div class="legend">
+                <span><i style="background:#3F6B52"></i>Coletado</span>
+                <span><i style="background:#8FB259"></i>Reciclado</span>
+              </div>
+            </div>
+            <div id="chart-area"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h2>Por material</h2></div>
+            <div id="chart-donut"></div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="dark-card" id="meta-card"></div>
+          <div class="card">
+            <div class="card-head"><h2>Locais que mais receberam resíduos</h2></div>
+            <ul class="rank" id="ranking"></ul>
+          </div>
+        </div>
+        <p class="foot-note">&#127807; Indicadores calculados a partir dos registros de resíduos e dos lotes reciclados.</p>
+      </section>
+
+      <!-- RESÍDUOS -->
+      <section id="view-residuos" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Registro de resíduos</p>
+            <h1>Resíduos</h1>
+            <p class="sub">Lance cada coleta por local, material e peso. Os indicadores do painel são recalculados a partir destes registros.</p>
+          </div>
+          <div class="head-actions"><button class="btn" data-action="new-residuo">+ Novo registro</button></div>
+        </header>
+        <div class="card filters">
+          <input id="f-busca" placeholder="Buscar por local ou observação" />
+          <select id="f-material"></select>
+          <select id="f-status"></select>
+        </div>
+        <p class="meta-line"><span id="res-count"></span><span id="res-total" class="num"></span></p>
+        <div class="card table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th><th>Local</th><th>Material</th><th class="right">Peso</th>
+                <th>Origem</th><th>Status</th><th class="right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="res-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- LOCAIS -->
+      <section id="view-locais" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Cadastro</p>
+            <h1>Locais de coleta</h1>
+            <p class="sub">Ecopontos, cooperativas e pontos de entrega voluntária que recebem os resíduos monitorados.</p>
+          </div>
+          <div class="head-actions"><button class="btn" data-action="new-local">+ Novo local</button></div>
+        </header>
+        <div class="kpis" id="locais-kpis"></div>
+        <div class="cards" id="locais-grid"></div>
+      </section>
+
+      <!-- RECICLADOS -->
+      <section id="view-reciclados" hidden>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Controle de materiais</p>
+            <h1>Materiais reciclados</h1>
+            <p class="sub">Lotes que concluíram a triagem e foram destinados ao reuso, à indústria, à doação ou à venda.</p>
+          </div>
+          <div class="head-actions"><button class="btn" data-action="new-reciclado">+ Novo lote</button></div>
+        </header>
+        <div class="kpis" id="rec-kpis"></div>
+        <div class="card table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th><th>Material</th><th class="right">Peso</th><th>Destino</th>
+                <th>Lote</th><th>Local</th><th class="right">Receita</th><th class="right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="rec-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title"></h3>
+        <p id="modal-sub"></p>
+      </div>
+      <button class="icon-btn" data-action="close-modal" aria-label="Fechar">&#10005;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Dados de referência ---------- */
+  var MATERIAIS = [
+    { value: "papel", label: "Papel", color: "#3F6B52", co2: 0.9 },
+    { value: "papelao", label: "Papelão", color: "#8B9B6A", co2: 0.8 },
+    { value: "plastico", label: "Plástico", color: "#A9C97A", co2: 1.5 },
+    { value: "vidro", label: "Vidro", color: "#8FB3A6", co2: 0.3 },
+    { value: "metal", label: "Metal", color: "#D8A76A", co2: 4.5 },
+    { value: "eletronico", label: "Eletrônico", color: "#6E8CA0", co2: 2.2 },
+    { value: "organico", label: "Orgânico", color: "#A87C5A", co2: 0.5 },
+    { value: "oleo", label: "Óleo", color: "#C98A6B", co2: 1.1 }
+  ];
+  var ORIGENS = [
+    { value: "domestico", label: "Doméstico" },
+    { value: "comercial", label: "Comercial" },
+    { value: "industrial", label: "Industrial" },
+    { value: "escolar", label: "Escolar" },
+    { value: "publico", label: "Limpeza pública" }
+  ];
+  var STATUS_RES = [
+    { value: "coletado", label: "Coletado" },
+    { value: "triagem", label: "Em triagem" },
+    { value: "reciclado", label: "Reciclado" },
+    { value: "descartado", label: "Descartado" }
+  ];
+  var TIPOS = [
+    { value: "ecoponto", label: "Ecoponto" },
+    { value: "cooperativa", label: "Cooperativa" },
+    { value: "pev", label: "Ponto de entrega voluntária" },
+    { value: "aterro", label: "Aterro" },
+    { value: "escola", label: "Instituição de ensino" }
+  ];
+  var DESTINOS = [
+    { value: "reuso", label: "Reuso" },
+    { value: "reinsercao", label: "Reinserção industrial" },
+    { value: "doacao", label: "Doação" },
+    { value: "venda", label: "Venda" }
+  ];
+  var META = 1200;
+  var STORE = "ecodata.v1";
+
+  /* ---------- Utilidades ---------- */
+  function fmt(v, d) {
+    return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: d || 0 }).format(Number(v) || 0);
+  }
+  function kg(v, d) { return fmt(v, d) + " kg"; }
+  function brl(v) {
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(v) || 0);
+  }
+  function pct(v) { return fmt(v, 1) + "%"; }
+  function dateBR(iso) {
+    var p = String(iso || "").split("-");
+    return p.length === 3 ? p[2] + "/" + p[1] + "/" + p[0] : "—";
+  }
+  function today() { return new Date().toISOString().slice(0, 10); }
+  function uid() {
+    return "id" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function esc(v) {
+    return String(v == null ? "" : v).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function mat(value) {
+    for (var i = 0; i < MATERIAIS.length; i++) if (MATERIAIS[i].value === value) return MATERIAIS[i];
+    return { value: value, label: value || "—", color: "#9AA79B", co2: 0.6 };
+  }
+  function labelOf(list, value) {
+    for (var i = 0; i < list.length; i++) if (list[i].value === value) return list[i].label;
+    return value || "—";
+  }
+  function num(v) { return Number(v) || 0; }
+  function monthsBack(count) {
+    var out = [];
+    var now = new Date();
+    for (var i = count - 1; i >= 0; i--) {
+      var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+      out.push({
+        key: d.toISOString().slice(0, 7),
+        label: d.toLocaleDateString("pt-BR", { month: "short", timeZone: "UTC" }).replace(".", "")
+      });
+    }
+    return out;
+  }
+
+  /* ---------- Banco de dados local ---------- */
+  var state = loadState();
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORE);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && parsed.locais && parsed.residuos && parsed.reciclados) return parsed;
+      }
+    } catch (e) { /* ignora */ }
+    var seeded = seed();
+    try { localStorage.setItem(STORE, JSON.stringify(seeded)); } catch (e) { /* ignora */ }
+    return seeded;
+  }
+
+  function saveState() {
+    try { localStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* ignora */ }
+  }
+
+  function seed() {
+    var locais = [
+      { id: "l1", nome: "Ecoponto Vila Verde", tipo: "ecoponto", bairro: "Vila Verde", endereco: "Rua das Acácias, 240", responsavel: "Marina Costa", telefone: "(11) 98812-4477", materiais_aceitos: ["papel", "papelao", "plastico", "vidro", "metal"], capacidade_kg: 900, status: "ativo", observacoes: "Aberto de segunda a sábado." },
+      { id: "l2", nome: "Cooperativa Recicla Mais", tipo: "cooperativa", bairro: "Centro", endereco: "Av. Central, 1180", responsavel: "João Batista", telefone: "(11) 99145-2200", materiais_aceitos: ["papel", "papelao", "plastico", "metal", "oleo"], capacidade_kg: 1200, status: "ativo", observacoes: "" },
+      { id: "l3", nome: "PEV Praça das Águas", tipo: "pev", bairro: "Jardim Sul", endereco: "Praça das Águas, s/n", responsavel: "Rita Almeida", telefone: "(11) 97733-1188", materiais_aceitos: ["plastico", "vidro", "metal", "eletronico"], capacidade_kg: 600, status: "ativo", observacoes: "" },
+      { id: "l4", nome: "Escola Municipal Ipê", tipo: "escola", bairro: "Ipê", endereco: "Rua dos Ipês, 45", responsavel: "Carla Nunes", telefone: "(11) 96542-3311", materiais_aceitos: ["papel", "papelao", "plastico", "organico"], capacidade_kg: 300, status: "ativo", observacoes: "Programa de educação ambiental." },
+      { id: "l5", nome: "Ecoponto Norte", tipo: "ecoponto", bairro: "Distrito Norte", endereco: "Estrada do Norte, 900", responsavel: "Paulo Menezes", telefone: "(11) 98120-7744", materiais_aceitos: ["papel", "plastico", "vidro", "metal"], capacidade_kg: 700, status: "manutencao", observacoes: "Reforma do pátio prevista." }
+    ];
+    var ativos = locais.filter(function (l) { return l.status === "ativo"; });
+    var seedNum = 11;
+    function rnd() { seedNum = (seedNum * 9301 + 49297) % 233280; return seedNum / 233280; }
+    var months = monthsBack(6);
+    var residuos = [];
+    var reciclados = [];
+    var seq = 1;
+    var loteSeq = 1;
+    months.forEach(function (m, index) {
+      var count = 6 + index;
+      for (var i = 0; i < count; i++) {
+        var local = ativos[Math.floor(rnd() * ativos.length)];
+        var material = MATERIAIS[Math.floor(rnd() * MATERIAIS.length)].value;
+        var day = String(2 + Math.floor(rnd() * 24)).padStart(2, "0");
+        var roll = rnd();
+        residuos.push({
+          id: "r" + seq++,
+          data: m.key + "-" + day,
+          local_id: local.id,
+          local_nome: local.nome,
+          material: material,
+          peso_kg: Math.round((25 + rnd() * 190) * 10) / 10,
+          origem: ORIGENS[Math.floor(rnd() * ORIGENS.length)].value,
+          status: roll > 0.45 ? "reciclado" : roll > 0.2 ? "triagem" : "coletado",
+          observacoes: ""
+        });
+      }
+      var lotes = 2 + Math.round(index / 2);
+      for (var j = 0; j < lotes; j++) {
+        var localRec = ativos[Math.floor(rnd() * ativos.length)];
+        var matRec = MATERIAIS[Math.floor(rnd() * 6)];
+        var peso = Math.round((60 + rnd() * 210) * 10) / 10;
+        reciclados.push({
+          id: "m" + seq++,
+          data: m.key + "-" + String(3 + Math.floor(rnd() * 22)).padStart(2, "0"),
+          material: matRec.value,
+          peso_kg: peso,
+          destino: DESTINOS[Math.floor(rnd() * DESTINOS.length)].value,
+          valor_reais: Math.round(peso * (0.4 + rnd() * 1.6) * 100) / 100,
+          lote: "LT-" + new Date().getFullYear() + "-" + String(loteSeq++).padStart(3, "0"),
+          local_nome: localRec.nome,
+          observacoes: ""
+        });
+      }
+    });
+    return { locais: locais, residuos: residuos, reciclados: reciclados };
+  }
+
+  /* ---------- Indicadores ---------- */
+  function stats() {
+    var meses = monthsBack(6);
+    var totalColetado = 0, totalReciclado = 0, co2 = 0, receita = 0;
+    var porMaterial = {}, porLocal = {};
+
+    state.residuos.forEach(function (r) {
+      var peso = num(r.peso_kg);
+      totalColetado += peso;
+      porMaterial[r.material] = (porMaterial[r.material] || 0) + peso;
+      var chave = r.local_nome || "Sem local";
+      porLocal[chave] = (porLocal[chave] || 0) + peso;
+    });
+
+    var atual = meses[meses.length - 1].key;
+    var recicladoMes = 0;
+    state.reciclados.forEach(function (r) {
+      var peso = num(r.peso_kg);
+      totalReciclado += peso;
+      co2 += peso * mat(r.material).co2;
+      receita += num(r.valor_reais);
+      if (String(r.data).slice(0, 7) === atual) recicladoMes += peso;
+    });
+
+    var series = meses.map(function (m) {
+      var c = 0, rec = 0;
+      state.residuos.forEach(function (r) { if (String(r.data).slice(0, 7) === m.key) c += num(r.peso_kg); });
+      state.reciclados.forEach(function (r) { if (String(r.data).slice(0, 7) === m.key) rec += num(r.peso_kg); });
+      return { label: m.label, coletado: Math.round(c), reciclado: Math.round(rec) };
+    });
+
+    var materiais = Object.keys(porMaterial).map(function (k) {
+      return { label: mat(k).label, value: Math.round(porMaterial[k]), color: mat(k).color };
+    }).sort(function (a, b) { return b.value - a.value; });
+
+    var ranking = Object.keys(porLocal).map(function (k) {
+      var bairro = "—";
+      state.locais.forEach(function (l) { if (l.nome === k) bairro = l.bairro; });
+      return { nome: k, bairro: bairro, kg: Math.round(porLocal[k]) };
+    }).sort(function (a, b) { return b.kg - a.kg; }).slice(0, 5);
+
+    return {
+      totalColetado: Math.round(totalColetado),
+      totalReciclado: Math.round(totalReciclado),
+      taxa: totalColetado ? (totalReciclado / totalColetado) * 100 : 0,
+      co2: Math.round(co2),
+      receita: receita,
+      locaisAtivos: state.locais.filter(function (l) { return l.status === "ativo"; }).length,
+      locaisTotal: state.locais.length,
+      registros: state.residuos.length,
+      series: series,
+      materiais: materiais,
+      ranking: ranking,
+      meta: {
+        valor: META,
+        reciclado: Math.round(recicladoMes),
+        pct: Math.min(100, Math.round((recicladoMes / META) * 100)),
+        faltam: Math.max(0, Math.round(META - recicladoMes))
+      },
+      arvores: Math.round(co2 / 21)
+    };
+  }
+
+  /* ---------- Gráficos ---------- */
+  function areaChart(series) {
+    var w = 640, h = 240, padL = 36, padR = 12, padT = 14, padB = 28;
+    var max = 10;
+    series.forEach(function (d) { max = Math.max(max, d.coletado, d.reciclado); });
+    var innerW = w - padL - padR, innerH = h - padT - padB;
+    function x(i) { return series.length === 1 ? padL + innerW / 2 : padL + (innerW * i) / (series.length - 1); }
+    function y(v) { return padT + innerH - (v / max) * innerH; }
+    function line(key) {
+      return series.map(function (d, i) {
+        return (i ? "L" : "M") + x(i).toFixed(1) + "," + y(d[key]).toFixed(1);
+      }).join(" ");
+    }
+    function area(key) {
+      var base = (padT + innerH).toFixed(1);
+      return line(key) + " L" + x(series.length - 1).toFixed(1) + "," + base + " L" + x(0).toFixed(1) + "," + base + " Z";
+    }
+    var grid = "";
+    for (var g = 0; g <= 4; g++) {
+      var gy = padT + (innerH * g) / 4;
+      grid += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (w - padR) + '" y2="' + gy + '" stroke="#E9E5D8" stroke-width="1"/>';
+    }
+    var labels = series.map(function (d, i) {
+      return '<text x="' + x(i) + '" y="' + (h - 8) + '" text-anchor="middle" font-size="10" fill="#7A877F">' + esc(d.label) + "</text>";
+    }).join("");
+
+    return '<svg viewBox="0 0 ' + w + " " + h + '" role="img" aria-label="Evolução mensal de resíduos coletados e reciclados" style="width:100%;height:auto;display:block">' +
+      '<defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3F6B52" stop-opacity="0.28"/><stop offset="100%" stop-color="#3F6B52" stop-opacity="0.02"/></linearGradient>' +
+      '<linearGradient id="gB" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#A9C97A" stop-opacity="0.5"/><stop offset="100%" stop-color="#A9C97A" stop-opacity="0.03"/></linearGradient></defs>' +
+      grid +
+      '<path d="' + area("coletado") + '" fill="url(#gA)"/>' +
+      '<path d="' + line("coletado") + '" fill="none" stroke="#3F6B52" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      '<path d="' + area("reciclado") + '" fill="url(#gB)"/>' +
+      '<path d="' + line("reciclado") + '" fill="none" stroke="#8FB259" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      labels + "</svg>";
+  }
+
+  function donutChart(data) {
+    if (!data.length) return '<p class="empty">Sem dados de material ainda.</p>';
+    var total = data.reduce(function (s, d) { return s + d.value; }, 0) || 1;
+    var acc = 0;
+    var stops = data.map(function (d) {
+      var start = (acc / total) * 100;
+      acc += d.value;
+      var end = (acc / total) * 100;
+      return d.color + " " + start.toFixed(2) + "% " + end.toFixed(2) + "%";
+    }).join(", ");
+    var legend = data.slice(0, 5).map(function (d) {
+      return '<li><i style="background:' + d.color + '"></i>' + esc(d.label) +
+        "<b>" + Math.round((d.value / total) * 100) + "%</b></li>";
+    }).join("");
+    return '<div class="donut-wrap"><div class="donut" style="background:conic-gradient(' + stops + ')">' +
+      '<div class="donut-center"><span>Total</span><strong>' + fmt(total / 1000, 1) + "t</strong></div></div>" +
+      '<ul class="donut-legend">' + legend + "</ul></div>";
+  }
+
+  /* ---------- Renderização ---------- */
+  function renderAll() {
+    var s = stats();
+    renderKpis(s);
+    document.getElementById("chart-area").innerHTML = areaChart(s.series);
+    document.getElementById("chart-donut").innerHTML = donutChart(s.materiais);
+    renderMeta(s);
+    renderRanking(s);
+    renderResiduos();
+    renderLocais(s);
+    renderReciclados();
+  }
+
+  function renderKpis(s) {
+    document.getElementById("kpis").innerHTML =
+      kpi("Resíduos registrados", fmt(s.totalColetado) + "<small>kg</small>", s.registros + " registros de coleta") +
+      kpi("Taxa de reciclagem", pct(s.taxa), kg(s.totalReciclado) + " reciclados de " + kg(s.totalColetado)) +
+      kpi("CO₂ evitado", fmt(s.co2) + "<small>kg</small>", "Estimativa a partir dos materiais reciclados") +
+      kpi("Locais ativos", fmt(s.locaisAtivos), "de " + s.locaisTotal + " locais cadastrados");
+  }
+
+  function kpi(label, value, hint) {
+    return '<div class="kpi"><div class="label">' + esc(label) + '</div><div class="value">' +
+      value + '</div><div class="hint">' + esc(hint) + "</div></div>";
+  }
+
+  function renderMeta(s) {
+    document.getElementById("meta-card").innerHTML =
+      '<p class="eyebrow">Indicador do mês</p>' +
+      "<h2>Meta de reciclagem</h2>" +
+      '<p class="meta">' + kg(s.meta.reciclado) + " de " + kg(s.meta.valor) + " processados neste mês</p>" +
+      '<div class="bar"><i style="width:' + s.meta.pct + '%"></i></div>' +
+      '<div class="bar-legend"><span>' + s.meta.pct + "% da meta</span><span>faltam " + kg(s.meta.faltam) + "</span></div>" +
+      '<div class="dark-split"><div><span>Árvores equivalentes</span><strong>' + fmt(s.arvores) + "</strong></div>" +
+      "<div><span>Receita da reciclagem</span><strong>" + brl(s.receita) + "</strong></div></div>";
+  }
+
+  function renderRanking(s) {
+    var el = document.getElementById("ranking");
+    if (!s.ranking.length) {
+      el.innerHTML = '<li style="border:none;color:var(--muted);font-size:13px;padding:16px 0">Nenhuma coleta registrada por local.</li>';
+      return;
+    }
+    var max = s.ranking[0].kg || 1;
+    el.innerHTML = s.ranking.map(function (r, i) {
+      return '<li><span class="pos">' + (i + 1) + "</span>" +
+        '<span class="who"><p>' + esc(r.nome) + "</p><span>" + esc(r.bairro) + "</span></span>" +
+        '<span class="track"><i style="width:' + Math.round((r.kg / max) * 100) + '%"></i></span>' +
+        '<span class="val num">' + kg(r.kg) + "</span></li>";
+    }).join("");
+  }
+
+  function renderResiduos() {
+    var busca = (document.getElementById("f-busca").value || "").toLowerCase().trim();
+    var fMat = document.getElementById("f-material").value;
+    var fStatus = document.getElementById("f-status").value;
+
+    var rows = state.residuos.filter(function (r) {
+      if (fMat && r.material !== fMat) return false;
+      if (fStatus && r.status !== fStatus) return false;
+      if (!busca) return true;
+      return (String(r.local_nome || "") + " " + String(r.observacoes || "")).toLowerCase().indexOf(busca) >= 0;
+    }).sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+
+    var total = rows.reduce(function (s, r) { return s + num(r.peso_kg); }, 0);
+    document.getElementById("res-count").textContent = fmt(rows.length) + (rows.length === 1 ? " registro encontrado" : " registros encontrados");
+    document.getElementById("res-total").textContent = kg(total, 1) + " no total";
+
+    var body = document.getElementById("res-body");
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="7"><div class="empty"><strong>Nenhum resíduo encontrado</strong>Ajuste os filtros ou registre a primeira coleta.</div></td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      var m = mat(r.material);
+      return "<tr>" +
+        '<td class="num">' + dateBR(r.data) + "</td>" +
+        "<td>" + esc(r.local_nome || "—") + "</td>" +
+        '<td><span class="mat"><i style="background:' + m.color + '"></i>' + esc(m.label) + "</span></td>" +
+        '<td class="right num">' + fmt(r.peso_kg, 1) + " kg</td>" +
+        "<td>" + esc(labelOf(ORIGENS, r.origem)) + "</td>" +
+        '<td><span class="pill ' + esc(r.status) + '">' + esc(labelOf(STATUS_RES, r.status)) + "</span></td>" +
+        '<td class="right"><button class="icon-btn" data-action="edit-residuo" data-id="' + r.id + '" title="Editar">&#9998;</button>' +
+        '<button class="icon-btn danger" data-action="del-residuo" data-id="' + r.id + '" title="Excluir">&#128465;</button></td>' +
+        "</tr>";
+    }).join("");
+  }
+
+  function renderLocais(s) {
+    document.getElementById("locais-kpis").innerHTML =
+      kpi("Locais cadastrados", fmt(s.locaisTotal), "ecopontos, cooperativas e PEVs") +
+      kpi("Em operação", fmt(s.locaisAtivos), "recebendo resíduos agora") +
+      kpi("Capacidade somada", kg(state.locais.reduce(function (a, l) { return a + num(l.capacidade_kg); }, 0)), "estimativa mensal");
+
+    var grid = document.getElementById("locais-grid");
+    if (!state.locais.length) {
+      grid.innerHTML = '<div class="empty"><strong>Nenhum local cadastrado</strong>Cadastre o primeiro ecoponto ou cooperativa.</div>';
+      return;
+    }
+    grid.innerHTML = state.locais.map(function (l) {
+      var tags = (l.materiais_aceitos || []).slice(0, 4).map(function (m) {
+        return "<span>" + esc(mat(m).label) + "</span>";
+      }).join("");
+      if ((l.materiais_aceitos || []).length > 4) {
+        tags += "<span>+" + (l.materiais_aceitos.length - 4) + "</span>";
+      }
+      return '<article class="local"><div class="top"><div>' +
+        '<p class="tipo">' + esc(labelOf(TIPOS, l.tipo)) + "</p>" +
+        "<h3>" + esc(l.nome) + "</h3>" +
+        '<p class="bairro">' + esc(l.bairro || "—") + "</p></div>" +
+        '<span class="pill ' + esc(l.status) + '">' + esc({ ativo: "Ativo", manutencao: "Em manutenção", inativo: "Inativo" }[l.status] || l.status) + "</span></div>" +
+        '<div class="tags">' + tags + "</div>" +
+        '<div class="foot"><div><small>Capacidade</small><strong>' + kg(l.capacidade_kg) + "/mês</strong></div>" +
+        '<div><button class="icon-btn" data-action="edit-local" data-id="' + l.id + '" title="Editar">&#9998;</button>' +
+        '<button class="icon-btn danger" data-action="del-local" data-id="' + l.id + '" title="Excluir">&#128465;</button></div></div></article>';
+    }).join("");
+  }
+
+  function renderReciclados() {
+    var totalKg = state.reciclados.reduce(function (s, r) { return s + num(r.peso_kg); }, 0);
+    var receita = state.reciclados.reduce(function (s, r) { return s + num(r.valor_reais); }, 0);
+    document.getElementById("rec-kpis").innerHTML =
+      kpi("Lotes registrados", fmt(state.reciclados.length), "lotes que concluíram a triagem") +
+      kpi("Material reciclado", kg(totalKg, 1), "soma dos lotes registrados") +
+      kpi("Receita gerada", brl(receita), "vendas e destinação dos materiais");
+
+    var body = document.getElementById("rec-body");
+    var rows = state.reciclados.slice().sort(function (a, b) { return String(b.data).localeCompare(String(a.data)); });
+    if (!rows.length) {
+      body.innerHTML = '<tr><td colspan="8"><div class="empty"><strong>Nenhum lote registrado</strong>Registre o material que passou pela triagem.</div></td></tr>';
+      return;
+    }
+    body.innerHTML = rows.map(function (r) {
+      var m = mat(r.material);
+      return "<tr>" +
+        '<td class="num">' + dateBR(r.data) + "</td>" +
+        '<td><span class="mat"><i style="background:' + m.color + '"></i>' + esc(m.label) + "</span></td>" +
+        '<td class="right num">' + fmt(r.peso_kg, 1) + " kg</td>" +
+        "<td>" + esc(labelOf(DESTINOS, r.destino)) + "</td>" +
+        '<td class="num">' + esc(r.lote || "—") + "</td>" +
+        "<td>" + esc(r.local_nome || "—") + "</td>" +
+        '<td class="right num">' + brl(r.valor_reais) + "</td>" +
+        '<td class="right"><button class="icon-btn" data-action="edit-reciclado" data-id="' + r.id + '" title="Editar">&#9998;</button>' +
+        '<button class="icon-btn danger" data-action="del-reciclado" data-id="' + r.id + '" title="Excluir">&#128465;</button></td>' +
+        "</tr>";
+    }).join("");
+  }
+
+  /* ---------- Navegação ---------- */
+  function switchView(view) {
+    ["painel", "residuos", "locais", "reciclados"].forEach(function (name) {
+      document.getElementById("view-" + name).hidden = name !== view;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#menu button"), function (b) {
+      b.classList.toggle("active", b.dataset.view === view);
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- Modal ---------- */
+  function openModal(title, subtitle, bodyHTML) {
+    document.getElementById("modal-title").textContent = title;
+    document.getElementById("modal-sub").textContent = subtitle || "";
+    document.getElementById("modal-body").innerHTML = bodyHTML;
+    document.getElementById("modal").hidden = false;
+  }
+  function closeModal() {
+    document.getElementById("modal").hidden = true;
+    document.getElementById("modal-body").innerHTML = "";
+  }
+  function toast(message) {
+    var el = document.getElementById("toast");
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove("show"); }, 2200);
+  }
+  function options(list, selected) {
+    return list.map(function (o) {
+      return '<option value="' + o.value + '"' + (o.value === selected ? " selected" : "") + ">" + esc(o.label) + "</option>";
+    }).join("");
+  }
+  function localOptions(selectedId) {
+    return state.locais.map(function (l) {
+      return '<option value="' + l.id + '"' + (l.id === selectedId ? " selected" : "") + ">" + esc(l.nome) + "</option>";
+    }).join("");
+  }
+
+  function openResiduoForm(id) {
+    var r = state.residuos.filter(function (x) { return x.id === id; })[0] || null;
+    openModal(r ? "Editar registro" : "Novo registro de resíduo", "Informe o local, o material e o peso coletado.",
+      '<form id="form-residuo"><div class="form-grid">' +
+        '<div><label class="field">Data</label><input type="date" name="data" required value="' + esc(r ? String(r.data).slice(0, 10) : today()) + '"></div>' +
+        '<div><label class="field">Peso (kg)</label><input type="number" name="peso_kg" min="0" step="0.1" required value="' + esc(r ? r.peso_kg : "") + '"></div>' +
+        '<div class="full"><label class="field">Local de coleta</label><select name="local_id" required>' + localOptions(r ? r.local_id : "") + "</select></div>" +
+        '<div><label class="field">Material</label><select name="material" required><option value="">Selecione</option>' + options(MATERIAIS, r ? r.material : "") + "</select></div>" +
+        '<div><label class="field">Origem</label><select name="origem">' + options(ORIGENS, r ? r.origem : "domestico") + "</select></div>" +
+        '<div><label class="field">Status</label><select name="status">' + options(STATUS_RES, r ? r.status : "coletado") + "</select></div>" +
+        '<div class="full"><label class="field">Observações</label><textarea name="observacoes" placeholder="Opcional">' + esc(r ? r.observacoes : "") + "</textarea></div>" +
+      "</div>" +
+      '<div class="modal-foot"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button>' +
+      '<button type="submit" class="btn">' + (r ? "Salvar alterações" : "Registrar") + "</button></div></form>");
+
+    document.getElementById("form-residuo").onsubmit = function (e) {
+      e.preventDefault();
+      var data = new FormData(e.target);
+      var local = state.locais.filter(function (l) { return l.id === data.get("local_id"); })[0];
+      var payload = {
+        data: data.get("data"),
+        local_id: data.get("local_id"),
+        local_nome: local ? local.nome : "",
+        material: data.get("material"),
+        peso_kg: num(data.get("peso_kg")),
+        origem: data.get("origem"),
+        status: data.get("status"),
+        observacoes: data.get("observacoes")
+      };
+      if (!payload.peso_kg || !payload.material) { toast("Informe material e peso maior que zero."); return; }
+      if (r) {
+        state.residuos = state.residuos.map(function (x) { return x.id === r.id ? Object.assign(x, payload) : x; });
+      } else {
+        state.residuos.push(Object.assign({ id: uid() }, payload));
+      }
+      saveState(); closeModal(); renderAll();
+      toast(r ? "Registro atualizado." : "Resíduo registrado.");
+    };
+  }
+
+  function openLocalForm(id) {
+    var l = state.locais.filter(function (x) { return x.id === id; })[0] || null;
+    var aceitos = l ? l.materiais_aceitos || [] : [];
+    var chips = MATERIAIS.map(function (m) {
+      return '<label><input type="checkbox" name="materiais" value="' + m.value + '"' +
+        (aceitos.indexOf(m.value) >= 0 ? " checked" : "") + ">" + esc(m.label) + "</label>";
+    }).join("");
+
+    openModal(l ? "Editar local" : "Novo local de coleta", "Ecopontos, cooperativas e pontos de entrega voluntária.",
+      '<form id="form-local"><div class="form-grid">' +
+        '<div><label class="field">Nome</label><input name="nome" required value="' + esc(l ? l.nome : "") + '"></div>' +
+        '<div><label class="field">Tipo</label><select name="tipo">' + options(TIPOS, l ? l.tipo : "ecoponto") + "</select></div>" +
+        '<div><label class="field">Bairro</label><input name="bairro" required value="' + esc(l ? l.bairro : "") + '"></div>' +
+        '<div><label class="field">Endereço</label><input name="endereco" value="' + esc(l ? l.endereco : "") + '"></div>' +
+        '<div><label class="field">Responsável</label><input name="responsavel" value="' + esc(l ? l.responsavel : "") + '"></div>' +
+        '<div><label class="field">Telefone</label><input name="telefone" value="' + esc(l ? l.telefone : "") + '"></div>' +
+        '<div><label class="field">Capacidade mensal (kg)</label><input type="number" name="capacidade_kg" min="0" value="' + esc(l ? l.capacidade_kg : "") + '"></div>' +
+        '<div><label class="field">Status</label><select name="status">' +
+          '<option value="ativo"' + (l && l.status === "ativo" ? " selected" : "") + ">Ativo</option>" +
+          '<option value="manutencao"' + (l && l.status === "manutencao" ? " selected" : "") + ">Em manutenção</option>" +
+          '<option value="inativo"' + (l && l.status === "inativo" ? " selected" : "") + ">Inativo</option></select></div>" +
+        '<div class="full"><label class="field">Materiais aceitos</label><div class="chips">' + chips + "</div></div>" +
+        '<div class="full"><label class="field">Observações</label><textarea name="observacoes">' + esc(l ? l.observacoes : "") + "</textarea></div>" +
+      "</div>" +
+      '<div class="modal-foot"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button>' +
+      '<button type="submit" class="btn">' + (l ? "Salvar alterações" : "Cadastrar local") + "</button></div></form>");
+
+    document.getElementById("form-local").onsubmit = function (e) {
+      e.preventDefault();
+      var data = new FormData(e.target);
+      var nome = String(data.get("nome") || "").trim();
+      if (!nome || !String(data.get("bairro") || "").trim()) { toast("Informe o nome e o bairro do local."); return; }
+      var payload = {
+        nome: nome,
+        tipo: data.get("tipo"),
+        bairro: data.get("bairro"),
+        endereco: data.get("endereco"),
+        responsavel: data.get("responsavel"),
+        telefone: data.get("telefone"),
+        capacidade_kg: num(data.get("capacidade_kg")),
+        status: data.get("status"),
+        materiais_aceitos: data.getAll("materiais"),
+        observacoes: data.get("observacoes")
+      };
+      if (l) {
+        state.locais = state.locais.map(function (x) { return x.id === l.id ? Object.assign(x, payload) : x; });
+        state.residuos.forEach(function (r) { if (r.local_id === l.id) r.local_nome = nome; });
+      } else {
+        state.locais.push(Object.assign({ id: uid() }, payload));
+      }
+      saveState(); closeModal(); renderAll();
+      toast(l ? "Local atualizado." : "Local cadastrado.");
+    };
+  }
+
+  function openRecicladoForm(id) {
+    var r = state.reciclados.filter(function (x) { return x.id === id; })[0] || null;
+    openModal(r ? "Editar lote reciclado" : "Novo lote reciclado", "Controle do material que passou pela triagem.",
+      '<form id="form-reciclado"><div class="form-grid">' +
+        '<div><label class="field">Data</label><input type="date" name="data" required value="' + esc(r ? String(r.data).slice(0, 10) : today()) + '"></div>' +
+        '<div><label class="field">Peso (kg)</label><input type="number" name="peso_kg" min="0" step="0.1" required value="' + esc(r ? r.peso_kg : "") + '"></div>' +
+        '<div><label class="field">Material</label><select name="material" required><option value="">Selecione</option>' + options(MATERIAIS, r ? r.material : "") + "</select></div>" +
+        '<div><label class="field">Destino</label><select name="destino">' + options(DESTINOS, r ? r.destino : "reinsercao") + "</select></div>" +
+        '<div><label class="field">Lote</label><input name="lote" placeholder="LT-2026-011" value="' + esc(r ? r.lote : "") + '"></div>' +
+        '<div><label class="field">Receita (R$)</label><input type="number" name="valor_reais" min="0" step="0.01" value="' + esc(r ? r.valor_reais : "") + '"></div>' +
+        '<div class="full"><label class="field">Local de origem</label><select name="local_nome"><option value="">Selecione</option>' +
+          state.locais.map(function (l) {
+            return '<option value="' + esc(l.nome) + '"' + (r && r.local_nome === l.nome ? " selected" : "") + ">" + esc(l.nome) + "</option>";
+          }).join("") + "</select></div>" +
+        '<div class="full"><label class="field">Observações</label><textarea name="observacoes">' + esc(r ? r.observacoes : "") + "</textarea></div>" +
+      "</div>" +
+      '<div class="modal-foot"><button type="button" class="btn outline" data-action="close-modal">Cancelar</button>' +
+      '<button type="submit" class="btn">' + (r ? "Salvar alterações" : "Registrar lote") + "</button></div></form>");
+
+    document.getElementById("form-reciclado").onsubmit = function (e) {
+      e.preventDefault();
+      var data = new FormData(e.target);
+      var payload = {
+        data: data.get("data"),
+        material: data.get("material"),
+        peso_kg: num(data.get("peso_kg")),
+        destino: data.get("destino"),
+        valor_reais: num(data.get("valor_reais")),
+        lote: data.get("lote"),
+        local_nome: data.get("local_nome"),
+        observacoes: data.get("observacoes")
+      };
+      if (!payload.material || !payload.peso_kg) { toast("Informe material e peso maior que zero."); return; }
+      if (r) {
+        state.reciclados = state.reciclados.map(function (x) { return x.id === r.id ? Object.assign(x, payload) : x; });
+      } else {
+        state.reciclados.push(Object.assign({ id: uid() }, payload));
+      }
+      saveState(); closeModal(); renderAll();
+      toast(r ? "Lote atualizado." : "Lote registrado.");
+    };
+  }
+
+  /* ---------- Eventos ---------- */
+  document.getElementById("menu").addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-view]");
+    if (btn) switchView(btn.dataset.view);
+  });
+
+  document.addEventListener("click", function (e) {
+    var target = e.target.closest("[data-action]");
+    if (!target) return;
+    var action = target.dataset.action;
+    var id = target.dataset.id;
+
+    if (action === "new-residuo") openResiduoForm(null);
+    else if (action === "new-local") openLocalForm(null);
+    else if (action === "new-reciclado") openRecicladoForm(null);
+    else if (action === "close-modal") closeModal();
+    else if (action === "edit-residuo") openResiduoForm(id);
+    else if (action === "edit-local") openLocalForm(id);
+    else if (action === "edit-reciclado") openRecicladoForm(id);
+    else if (action === "del-residuo") {
+      if (confirm("Excluir este registro de resíduo?")) {
+        state.residuos = state.residuos.filter(function (x) { return x.id !== id; });
+        saveState(); renderAll(); toast("Registro excluído.");
+      }
+    } else if (action === "del-local") {
+      if (confirm("Remover este local? Os resíduos já registrados permanecem no histórico.")) {
+        state.locais = state.locais.filter(function (x) { return x.id !== id; });
+        saveState(); renderAll(); toast("Local removido.");
+      }
+    } else if (action === "del-reciclado") {
+      if (confirm("Excluir este lote reciclado?")) {
+        state.reciclados = state.reciclados.filter(function (x) { return x.id !== id; });
+        saveState(); renderAll(); toast("Lote excluído.");
+      }
+    }
+  });
+
+  document.getElementById("modal").addEventListener("click", function (e) {
+    if (e.target.id === "modal") closeModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeModal();
+  });
+
+  document.getElementById("f-material").innerHTML = '<option value="">Todos os materiais</option>' + options(MATERIAIS, "");
+  document.getElementById("f-status").innerHTML = '<option value="">Todos os status</option>' + options(STATUS_RES, "");
+  ["f-busca", "f-material", "f-status"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", renderResiduos);
+    document.getElementById(id).addEventListener("change", renderResiduos);
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
